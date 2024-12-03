@@ -175,6 +175,10 @@
             uploadContainer.classList.add('hidden');
             videoContainer.classList.remove('hidden');
             subtitleContainer.classList.remove('hidden');
+
+            // Iniciar pantalla completa
+            enterFullScreen(document.documentElement);
+
             videoElement.play();
             videoElement.ontimeupdate = () => {
                 const currentTime = videoElement.currentTime;
@@ -185,8 +189,8 @@
                 if (subtitle && subtitle !== lastSubtitle) {
                     lastSubtitle = subtitle;
                     videoElement.pause(); // Pausa el video cuando aparece un nuevo subtítulo
-                    const lines = subtitle.text.split('\n');
-                    adjustSubtitleSize(lines.length); // Ajustar tamaño basado en la cantidad de líneas
+                    const lines = calculateEffectiveLines(subtitle.text); // Calcula líneas efectivas
+                    adjustSubtitleSize(lines);
                     subtitleDisplay.innerHTML = subtitle.text.replace(/\n/g, '<br>');
                     subtitleDisplay.style.opacity = '1';
                 } else if (!subtitle) {
@@ -202,18 +206,41 @@
             });
         }
 
+        function calculateEffectiveLines(text) {
+            const lines = text.split('\n');
+            let effectiveLines = 0;
+
+            lines.forEach((line) => {
+                const lineLength = line.length;
+                effectiveLines += Math.ceil(lineLength / 40); // Cada 40 caracteres cuentan como una línea
+            });
+
+            return effectiveLines;
+        }
+
         function adjustSubtitleSize(lineCount) {
-            // Ajusta el tamaño de fuente según la cantidad de líneas
             if (lineCount <= 2) {
-                subtitleDisplay.style.fontSize = '36px'; // Más grande para pocas líneas
+                subtitleDisplay.style.fontSize = '32px';
             } else if (lineCount <= 4) {
-                subtitleDisplay.style.fontSize = '30px';
+                subtitleDisplay.style.fontSize = '28px';
             } else if (lineCount <= 6) {
-                subtitleDisplay.style.fontSize = '26px';
-            } else if (lineCount <= 8) {
                 subtitleDisplay.style.fontSize = '24px';
+            } else if (lineCount <= 8) {
+                subtitleDisplay.style.fontSize = '20px';
             } else {
-                subtitleDisplay.style.fontSize = '18px'; // Más pequeño para muchas líneas
+                subtitleDisplay.style.fontSize = '16px';
+            }
+        }
+
+        function enterFullScreen(element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.mozRequestFullScreen) { // Firefox
+                element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullscreen) { // Chrome, Safari y Opera
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { // IE/Edge
+                element.msRequestFullscreen();
             }
         }
     </script>
